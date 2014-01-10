@@ -75,12 +75,11 @@ search_pkg()
 
 uninstall_pkg()
 {
-	#Pkginfo=`$Dpkg --status $Search`
 	$Zenity --title "dpkg-frontend" \
 	--question \
 	--text="Package $Search is installed.\nUninstall ${Search}?"
 	if [ $? -eq 0 ]; then # CHANGE NEXT LINE
-		sleep 5 | $Zenity --title "dpkg-frontend" \
+		sleep 3 | $Zenity --title "dpkg-frontend" \
 		--progress --pulsate --text "Uninstalling ${Search}..." 
 	fi
 }
@@ -95,6 +94,17 @@ show_selections()
 	Selections=`dpkg --get-selections $Search | awk '{ print $2 }'`
 	$Zenity --title "dpkg-frontend" \
 	--info --text "Selections for $Search is: <b>${Selections}</b>"
+}
+
+choice_dialog()
+{
+	Choice=`$Zenity --list --column=Action --column=Description \
+	--radiolist uninstall "Uninstall" show "Show selections"`
+	if [ "$Choice" = "Uninstall" ]; then
+		return 11
+	elif [ "$Choice" = "Show selections" ]; then
+		return 12
+	fi
 }
 
 # Create variables with absolute path to binaries and check
@@ -133,11 +143,12 @@ done
 
 ### Main ###
 search_pkg
-if [ $? -eq 0 ]; then
+choice_dialog
+if [ $? -eq 11 ]; then
 	uninstall_pkg
+elif [ $? -eq 12 ]; then
+	show_selections
 fi
-
-show_selections
 echo $Search
 
 exit 0
