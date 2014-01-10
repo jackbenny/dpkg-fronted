@@ -60,17 +60,41 @@ print_help()
 }
 
 # Dialog for package searching
-search()
+search_pkg()
 {
 	Search=`$Zenity --title "dpkg-frontend" --entry \
 		--text="Search for package"`
 
 	$Dpkg --list | $Awk '{ print $2 }' | $Egrep -x $Search &> /dev/null
 	if [ $? -eq 0 ]; then
-		Pkginfo=`$Dpkg --status $Search`
-		$Zenity --no-markup --title "dpkg-frontend" \
-		--info --text="$Pkginfo"
+		return 0
+	else
+		return 1
 	fi
+}
+
+uninstall_pkg()
+{
+	#Pkginfo=`$Dpkg --status $Search`
+	$Zenity --title "dpkg-frontend" \
+	--question \
+	--text="Package $Search is installed.\nUninstall ${Search}?"
+	if [ $? -eq 0 ]; then # CHANGE NEXT LINE
+		sleep 5 | $Zenity --title "dpkg-frontend" \
+		--progress --pulsate --text "Uninstalling ${Search}..." 
+	fi
+}
+
+install_pkg()
+{
+	echo "Install pkg?"
+}
+
+show_selections()
+{
+	Selections=`dpkg --get-selections $Search | awk '{ print $2 }'`
+	$Zenity --title "dpkg-frontend" \
+	--info --text "Selections for $Search is: <b>${Selections}</b>"
 }
 
 # Create variables with absolute path to binaries and check
@@ -108,7 +132,12 @@ done
 
 
 ### Main ###
-search
+search_pkg
+if [ $? -eq 0 ]; then
+	uninstall_pkg
+fi
+
+show_selections
 echo $Search
 
 exit 0
