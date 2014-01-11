@@ -30,9 +30,7 @@ Aptget="/usr/bin/apt-get"
 
 # Binaries entered in the list will be avalible to the script as variables with
 # the first letter uppercase
-Binaries=(dpkg sed awk egrep printf cat grep mktemp rm tail zenity)
-
-# Variables
+Binaries=(dpkg awk egrep printf tail zenity)
 
 
 ### Functions ###
@@ -149,6 +147,14 @@ choice_dialog()
 		return 14
 	fi
 }
+
+# Sanity checks
+for bin in $Which $Aptget; do
+	if [ ! -x $bin ]; then
+		echo "Can't execute $bin"
+		exit 1
+	fi
+done
 
 # Create variables with absolute path to binaries and check
 # if we can execute it (binaries will be avaliable in 
