@@ -171,13 +171,6 @@ $Which $i &> /dev/null
 	fi
 done
 
-# Check if we are root
-if [ $EUID -ne 0 ]; then
-	$Zenity --title "dpkg-frontend" --error \
-	--text "You need to run <b>dpkg-frontend</b> as root"
-	exit 1
-fi
-
 # Parse command line options and arguments
 while getopts Vvho: Opt; do
        	case "$Opt" in
@@ -196,10 +189,18 @@ while getopts Vvho: Opt; do
        	esac
 done
 
+# Check if we are root
+if [ $EUID -ne 0 ]; then
+	$Zenity --title "dpkg-frontend" --error \
+	--text "You need to run <b>dpkg-frontend</b> as root"
+	exit 1
+fi
+
+
 ### Main ###
-search_pkg
-case $? in
-	1) exit 0
+search_pkg		# Start with search for a package.
+case $? in		# Do different things depending on return code
+	1) exit 0	# from the function search_pkg().
 	   ;;
 	5) $Zenity --title "dpkg-frontend" --question \
 	   --text="Package <b>$Search</b> is not installed. Install it?"
@@ -211,6 +212,8 @@ case $? in
 	   ;;
 esac
 
+# If the package that was searched for is installed on the system
+# present different action to perform for the user.
 choice_dialog
 case $? in
 	11) uninstall_pkg
