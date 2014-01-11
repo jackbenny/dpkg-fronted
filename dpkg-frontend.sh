@@ -70,7 +70,7 @@ search_pkg()
 		return 1
 	fi
 
-	$Dpkg --list | $Awk '{ print $2 }' | $Egrep -x $Search &> /dev/null
+	$Dpkg -l $Search | $Egrep -o "ii  $Search" &> /dev/null
 	if [ $? -eq 0 ]; then
 		return 0
 	else
@@ -115,10 +115,10 @@ show_selections()
 set_selections()
 {
 	SetSelections=`$Zenity --title "dpkg-frontend" --entry \
-	--text "Type selections for package <b>$Search</b>"`
+	--text "Type selections for package $Search"`
 	echo "$Search $SetSelections" | $Dpkg --set-selections 
 	if [ $? -eq 0 ]; then
-		$Zentiy --title "dpkg-frontend" --info \
+		$Zeniy --title "dpkg-frontend" --info \
 		--text "<b>${SetSelections}</b> is set for <b>${Search}</b>"
 	else
 		$Zenity --title "dpkg-frontend" --error \
