@@ -64,12 +64,14 @@ search_pkg()
 {
 	Search=`$Zenity --title "dpkg-frontend" --entry \
 		--text="Search for package"`
-
+	if [ $? -eq 1 ]; then
+		return 1
+	fi
 	$Dpkg --list | $Awk '{ print $2 }' | $Egrep -x $Search &> /dev/null
 	if [ $? -eq 0 ]; then
 		return 0
 	else
-		return 1
+		return 5
 	fi
 }
 
@@ -100,9 +102,9 @@ choice_dialog()
 {
 	Choice=`$Zenity --list --column=Action --column=Description \
 	--radiolist uninstall "Uninstall" show "Show selections"`
-	if [ "$Choice" = "Uninstall" ]; then
+	if [ "$Choice" == "Uninstall" ]; then
 		return 11
-	elif [ "$Choice" = "Show selections" ]; then
+	elif [ "$Choice" == "Show selections" ]; then
 		return 12
 	fi
 }
@@ -143,12 +145,19 @@ done
 
 ### Main ###
 search_pkg
+if [ $? -eq 1 ]; then
+	exit 0
+elif [ $? -eq 5 ]; then
+	$Zenity --title "dpkg-frontend" --info \
+	--text="Package $Search is not installed"
+	exit 1
+fi
+
 choice_dialog
 if [ $? -eq 11 ]; then
 	uninstall_pkg
 elif [ $? -eq 12 ]; then
 	show_selections
 fi
-echo $Search
 
 exit 0
